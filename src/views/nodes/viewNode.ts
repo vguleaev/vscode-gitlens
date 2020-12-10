@@ -11,6 +11,7 @@ import {
 import { GitUri } from '../../git/gitUri';
 import { Logger } from '../../logger';
 import { debug, Functions, gate, log, logName } from '../../system';
+import { RepositoryNode } from '../nodes';
 import { TreeViewNodeCollapsibleStateChangeEvent, View } from '../viewBase';
 
 export enum ContextValues {
@@ -300,10 +301,10 @@ export abstract class RepositoryFolderNode<
 	TView extends View = View,
 	TChild extends ViewNode = ViewNode
 > extends SubscribeableViewNode<TView> {
-	static key = ':repository';
-	static getId(repoPath: string): string {
-		return `gitlens${this.key}(${repoPath})`;
-	}
+	// static key = ':repository';
+	// static getId(repoPath: string): string {
+	// 	return `gitlens${this.key}(${repoPath})`;
+	// }
 
 	protected splatted = true;
 	protected child: TChild | undefined;
@@ -319,7 +320,7 @@ export abstract class RepositoryFolderNode<
 	}
 
 	get id(): string {
-		return RepositoryFolderNode.getId(this.repo.path);
+		return RepositoryNode.getId(this.repo.path);
 	}
 
 	getTreeItem(): TreeItem | Promise<TreeItem> {
