@@ -1,6 +1,6 @@
 'use strict';
 import * as paths from 'path';
-import { Command, Selection, ThemeColor, ThemeIcon, TreeItem, TreeItemCollapsibleState } from 'vscode';
+import { Command, Selection, ThemeColor, ThemeIcon, TreeItem, TreeItemCollapsibleState, Uri } from 'vscode';
 import { Commands, DiffWithPreviousCommandArgs } from '../../commands';
 import { GlyphChars } from '../../constants';
 import { Container } from '../../container';
@@ -83,6 +83,11 @@ export class CommitFileNode extends ViewRefFileNode {
 		const item = new TreeItem(this.label, TreeItemCollapsibleState.None);
 		item.contextValue = this.contextValue;
 		item.description = this.description;
+		item.resourceUri = Uri.parse(
+			`gitlens-view://commit-file/${this.commit.ref}/${this.file.fileName}?${encodeURIComponent(
+				JSON.stringify({ repoPath: this.commit.repoPath, file: this.file }),
+			)}`,
+		);
 		item.tooltip = this.tooltip;
 
 		if (this._options.displayAsCommit) {

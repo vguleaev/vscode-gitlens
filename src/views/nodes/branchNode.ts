@@ -1,5 +1,5 @@
 'use strict';
-import { TreeItem, TreeItemCollapsibleState, window } from 'vscode';
+import { TreeItem, TreeItemCollapsibleState, Uri, window } from 'vscode';
 import { BranchesView } from '../branchesView';
 import { BranchTrackingStatusNode } from './branchTrackingStatusNode';
 import { CommitNode } from './commitNode';
@@ -317,6 +317,11 @@ export class BranchNode
 		};
 		item.id = this.id;
 		item.tooltip = tooltip;
+		item.resourceUri = Uri.parse(
+			`gitlens-view://branch/${this.branch.name}?${encodeURIComponent(
+				JSON.stringify({ repoPath: this.branch.repoPath }),
+			)}`,
+		);
 
 		return item;
 	}

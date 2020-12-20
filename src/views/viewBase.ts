@@ -7,14 +7,18 @@ import {
 	Disposable,
 	Event,
 	EventEmitter,
+	FileDecoration,
+	FileDecorationProvider,
 	MarkdownString,
 	MessageItem,
+	ThemeColor,
 	TreeDataProvider,
 	TreeItem,
 	TreeItemCollapsibleState,
 	TreeView,
 	TreeViewExpansionEvent,
 	TreeViewVisibilityChangeEvent,
+	Uri,
 	window,
 } from 'vscode';
 import { BranchesView } from './branchesView';
@@ -48,6 +52,131 @@ import { SearchAndCompareView } from './searchAndCompareView';
 import { StashesView } from './stashesView';
 import { debug, Functions, log, Promises, Strings } from '../system';
 import { TagsView } from './tagsView';
+import { GitFile } from '../git/git';
+
+export class ViewFileDecorationProvider implements FileDecorationProvider, Disposable {
+	private readonly _onDidChange = new EventEmitter<undefined | Uri | Uri[]>();
+	get onDidChange(): Event<undefined | Uri | Uri[]> {
+		return this._onDidChange.event;
+	}
+
+	private readonly disposable: Disposable;
+	constructor() {
+		this.disposable = window.registerFileDecorationProvider(this);
+	}
+
+	dispose(): void {
+		this.disposable.dispose();
+	}
+
+	async provideFileDecoration(uri: Uri, _token: CancellationToken): Promise<FileDecoration | undefined> {
+		if (uri.scheme !== 'gitlens-view') return undefined;
+
+		switch (uri.authority) {
+			case 'commit-file': {
+				const [ref, name] = uri.path.substr(1).split('/', 1);
+				console.log(ref, name);
+
+				const info: { repoPath: string; file: GitFile } = JSON.parse(uri.query);
+
+				switch (info.file.status) {
+					case '!':
+						return {
+							badge: 'I',
+							color: new ThemeColor('gitDecoration.ignoredResourceForeground'),
+							tooltip: 'Ignored',
+						};
+					case '?':
+						return {
+							badge: 'U',
+							color: new ThemeColor('gitDecoration.untrackedResourceForeground'),
+							tooltip: 'Untracked',
+						};
+					case 'A':
+						return {
+							badge: 'A',
+							color: new ThemeColor('gitDecoration.addedResourceForeground'),
+							tooltip: 'Added',
+						};
+					case 'C':
+						return {
+							badge: 'C',
+							color: new ThemeColor('gitlens.decorations.copiedForegroundColor'), //new ThemeColor('gitDecoration.copiedResourceForeground'),
+							tooltip: 'Copied',
+						};
+					case 'D':
+						return {
+							badge: 'D',
+							color: new ThemeColor('gitDecoration.deletedResourceForeground'),
+							tooltip: 'Deleted',
+						};
+					case 'M':
+					case 'U':
+						return {
+							badge: 'M',
+							// color: new ThemeColor('gitDecoration.modifiedResourceForeground'),
+							// tooltip: 'Modified',
+						};
+					case 'R':
+						return {
+							badge: 'R',
+							color: new ThemeColor('gitlens.decorations.renamedForegroundColor'), //new ThemeColor('gitDecoration.renamedResourceForeground'),
+							tooltip: 'Renamed',
+						};
+					case 'T':
+					case 'X':
+					case 'B':
+					default:
+						return undefined;
+				}
+			}
+			case 'branch': {
+				const name = uri.path.substr(1);
+
+				const info = JSON.parse(uri.query);
+				if (info.repoPath != null) {
+					const [branch] = await Container.git.getBranches(info.repoPath, { filter: b => b.name === name });
+					if (branch != null) {
+						if (branch.current) {
+							return {
+								badge: '✔',
+								tooltip: 'Current Branch',
+							};
+						}
+
+						if (branch.tracking) {
+							if (branch.state.ahead & branch.state.behind) {
+								return {
+									badge: 'M',
+									color: new ThemeColor('gitDecoration.stageModifiedResourceForeground'),
+									tooltip: 'Ahead & Behind',
+								};
+							}
+							if (branch.state.ahead) {
+								return {
+									badge: 'A',
+									color: new ThemeColor('gitDecoration.addedResourceForeground'),
+									tooltip: 'Ahead',
+								};
+							}
+							if (branch.state.behind) {
+								return {
+									badge: 'B',
+									color: new ThemeColor('gitDecoration.deletedResourceForeground'),
+									tooltip: 'Behind',
+								};
+							}
+						}
+					}
+				}
+
+				break;
+			}
+		}
+
+		return undefined;
+	}
+}
 
 export type View =
 	| BranchesView

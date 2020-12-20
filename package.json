@@ -2528,6 +2528,24 @@
 					"light": "#B15E35",
 					"highContrast": "#B15E35"
 				}
+			},
+			{
+				"id": "gitlens.decorations.copiedForegroundColor",
+				"description": "Specifies the decoration foreground color of copied files",
+				"defaults": {
+					"light": "#007100",
+					"dark": "#73C991",
+					"highContrast": "#73C991"
+				}
+			},
+			{
+				"id": "gitlens.decorations.renamedForegroundColor",
+				"description": "Specifies the decoration foreground color of renamed files",
+				"defaults": {
+					"light": "#007100",
+					"dark": "#73C991",
+					"highContrast": "#73C991"
+				}
 			}
 		],
 		"commands": [

@@ -197,9 +197,16 @@ export class GitStatus {
 	static getUpstreamStatus(
 		upstream: string | undefined,
 		state: { ahead: number; behind: number },
-		options: { empty?: string; expand?: boolean; prefix?: string; separator?: string; suffix?: string } = {},
+		options: {
+			count?: boolean;
+			empty?: string;
+			expand?: boolean;
+			prefix?: string;
+			separator?: string;
+			suffix?: string;
+		} = {},
 	): string {
-		const { expand = false, prefix = '', separator = ' ', suffix = '' } = options;
+		const { count = true, expand = false, prefix = '', separator = ' ', suffix = '' } = options;
 		if (upstream == null || (state.behind === 0 && state.ahead === 0)) return options.empty ?? '';
 
 		if (expand) {
@@ -216,7 +223,9 @@ export class GitStatus {
 			return `${prefix}${status}${suffix}`;
 		}
 
-		return `${prefix}${state.behind}${GlyphChars.ArrowDown}${separator}${state.ahead}${GlyphChars.ArrowUp}${suffix}`;
+		return `${prefix}${count ? state.behind : ''}${
+			count || state.behind !== 0 ? GlyphChars.ArrowDown : ''
+		}${separator}${count ? state.ahead : ''}${count || state.ahead !== 0 ? GlyphChars.ArrowUp : ''}${suffix}`;
 	}
 }
 
